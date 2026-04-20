@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>Feelette — Pilot</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f7f5f0;
+    --text: #1a1a18;
+    --text2: #73726c;
+    --text3: #9c9a92;
+    --border: rgba(0,0,0,0.12);
+    --border2: rgba(0,0,0,0.22);
+    --blue: #185FA5;
+    --blue2: #378ADD;
+    --green: #1D9E75;
+    --coral: #D85A30;
+    --pink: #D4537E;
+    --amber: #EF9F27;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a; --bg2: #252522;
+      --text: #e8e6de; --text2: #9c9a92; --text3: #5f5e5a;
+      --border: rgba(255,255,255,0.10); --border2: rgba(255,255,255,0.22);
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; overscroll-behavior: none; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg2); color: var(--text);
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app {
+    width: 100%; max-width: 440px; height: 100vh;
+    max-height: 100vh;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    position: relative;
+    overflow: hidden;
+  }
+  @media (min-width: 480px) {
+    #app {
+      height: 90vh; max-height: 820px;
+      border-radius: 16px;
+      border: 0.5px solid var(--border);
+    }
+  }
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* LOGIN */
+  #login {
+    padding: 2rem 1.5rem;
+    gap: 1rem;
+    justify-content: center;
+  }
+  .logo {
+    font-size: 24px; font-weight: 500; color: var(--blue);
+    text-align: center; margin-bottom: 1rem;
+    letter-spacing: 0.02em;
+  }
+  .sub-logo {
+    font-size: 13px; color: var(--text2);
+    text-align: center; margin-bottom: 1.5rem;
+  }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label {
+    font-size: 11px; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .field input {
+    padding: 12px 14px; font-size: 16px;
+    border-radius: 10px; border: 0.5px solid var(--border2);
+    background: var(--bg); color: var(--text);
+    font-family: inherit;
+  }
+  .field input:focus { outline: none; border-color: var(--blue); }
+  .field input[type="text"]#login-code,
+  .field input[type="text"]#login-group {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.15em; text-align: center;
+  }
+  .color-picker {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
+  }
+  .color-option {
+    padding: 10px; text-align: center; cursor: pointer;
+    border-radius: 10px; border: 2px solid transparent;
+    font-size: 12px; font-weight: 500; color: white;
+    user-select: none;
+  }
+  .color-option.selected { border-color: var(--text); }
+  .btn-primary {
+    padding: 14px; font-size: 15px; font-weight: 500;
+    border-radius: 10px; border: none; cursor: pointer;
+    background: var(--blue); color: white;
+    font-family: inherit; margin-top: 8px;
+  }
+  .btn-primary:disabled { opacity: 0.4; }
+  .btn-secondary {
+    padding: 10px; font-size: 13px;
+    background: transparent; color: var(--text2);
+    border: none; cursor: pointer;
+    font-family: inherit;
+  }
+  .error {
+    color: var(--coral); font-size: 12px; text-align: center;
+    min-height: 16px;
+  }
+
+  /* MAIN APP */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 0.5px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .me-chip {
+    display: flex; align-items: center; gap: 9px;
+  }
+  .me-av {
+    width: 38px; height: 38px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 500; font-size: 12px;
+    position: relative; flex-shrink: 0;
+  }
+  .me-total {
+    position: absolute; bottom: -3px; right: -6px;
+    background: var(--green); color: white;
+    font-size: 10px; font-weight: 500;
+    padding: 1px 5px; border-radius: 8px;
+    min-width: 22px; text-align: center;
+    border: 1.5px solid var(--bg);
+    font-variant-numeric: tabular-nums;
+  }
+  .me-name {
+    font-size: 12px; color: var(--text2);
+  }
+  .q-title {
+    font-size: 15px; font-weight: 500; color: var(--text);
+  }
+  .menu-btn {
+    padding: 8px; cursor: pointer;
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .menu-btn span {
+    width: 16px; height: 1.5px; background: var(--text);
+  }
+
+  .stage {
+    flex: 1; position: relative;
+    background: var(--bg);
+    overflow: hidden;
+    min-height: 0;
+  }
+  .track {
+    position: absolute; left: 50%; top: 30px; bottom: 30px;
+    width: 1px; background: var(--border2);
+    transform: translateX(-50%);
+  }
+  .track-top, .track-bot {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    font-size: 10px; color: var(--text3); font-weight: 500;
+  }
+  .track-top { top: 10px; } .track-bot { bottom: 10px; }
+
+  .ball {
+    position: absolute; left: 50%; top: 50%;
+    width: 50px; height: 50px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #85B7EB, #185FA5);
+    border: 2px solid #378ADD;
+    transform: translate(-50%, -50%);
+    cursor: grab; touch-action: none;
+    z-index: 3;
+    transition: box-shadow .15s;
+  }
+  .ball.grab { cursor: grabbing; box-shadow: 0 0 0 10px rgba(55,138,221,0.18); }
+  .ball.saving::after {
+    content: ''; position: absolute; inset: -4px;
+    border-radius: 50%; border: 2px solid var(--green);
+    opacity: 0.6; animation: save-ring .6s ease-out;
+  }
+  @keyframes save-ring {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.4); opacity: 0; }
+  }
+
+  .friend-ball {
+    position: absolute;
+    width: 54px; height: 54px; border-radius: 50%;
+    border: 3px solid; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 15px; font-weight: 500;
+    user-select: none; touch-action: none;
+    z-index: 3;
+    font-variant-numeric: tabular-nums;
+  }
+  .friend-ball.giving {
+    animation: pulse-local 1.5s infinite;
+  }
+  @keyframes pulse-local {
+    0%, 100% { box-shadow: 0 0 0 0 var(--pulse-color, rgba(55,138,221,0.5)); }
+    50% { box-shadow: 0 0 0 16px rgba(0,0,0,0); }
+  }
+  .friend-ball.fresh-time {
+    animation: fresh-glow 2s ease-out;
+  }
+  @keyframes fresh-glow {
+    0% { box-shadow: 0 0 0 0 var(--pulse-color, rgba(29,158,117,0.8)); }
+    100% { box-shadow: 0 0 0 30px rgba(0,0,0,0); }
+  }
+  .name-on-line {
+    position: absolute;
+    font-size: 11px; font-weight: 500;
+    pointer-events: none;
+    white-space: nowrap;
+  }
+  .f-line {
+    position: absolute; height: 2px; border-radius: 1px;
+    pointer-events: none; z-index: 1; opacity: .6;
+    transition: top .5s ease-out;
+  }
+  .f-dot {
+    position: absolute; width: 8px; height: 8px; border-radius: 50%;
+    z-index: 2;
+    transition: top .5s ease-out;
+  }
+
+  .toast {
+    position: absolute; bottom: 80px; left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(15,110,86,0.95); color: white;
+    font-size: 13px; padding: 10px 16px;
+    border-radius: 20px; opacity: 0;
+    transition: all .4s; pointer-events: none;
+    z-index: 8; white-space: nowrap;
+  }
+  .toast.visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.incoming { background: rgba(24,95,165,0.95); }
+
+  .tabbar {
+    display: flex; border-top: 0.5px solid var(--border);
+    background: var(--bg);
+    flex-shrink: 0;
+  }
+  .tab {
+    flex: 1; padding: 12px 8px; text-align: center;
+    cursor: pointer; border: none; background: transparent;
+    color: var(--text3); font-size: 11px;
+    font-family: inherit;
+  }
+  .tab.active { color: var(--blue); }
+  .tab-icon {
+    font-size: 19px; display: block; margin-bottom: 2px;
+    line-height: 1;
+  }
+
+  /* HISTORY SCREEN */
+  #history-view {
+    padding: 1rem; overflow-y: auto; flex: 1;
+  }
+  .history-section { margin-bottom: 1.4rem; }
+  .history-section h3 {
+    font-size: 11px; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 8px; font-weight: 500;
+  }
+  .day-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 12px;
+    background: var(--bg2); border-radius: 8px; margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .day-row .total { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .person-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg2); border-radius: 8px; margin-bottom: 4px;
+    font-size: 13px;
+  }
+  .person-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+  .person-name { flex: 1; }
+  .person-time { font-weight: 500; font-variant-numeric: tabular-nums; }
+  .empty { color: var(--text3); font-size: 12px; text-align: center; padding: 1rem; }
+
+  /* LOGOUT INFO */
+  .connection-info {
+    font-size: 10px; color: var(--text3);
+    text-align: center; padding: 8px;
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- LOGIN SCREEN -->
+  <div class="screen active" id="login">
+    <div class="logo">Feelette</div>
+    <div class="sub-logo">Pilot — give time, not words</div>
+
+    <div class="field">
+      <label>Your name</label>
+      <input type="text" id="login-name" placeholder="e.g. Timo" autocomplete="name" />
+    </div>
+
+    <div class="field">
+      <label>Your 3-digit code</label>
+      <input type="text" id="login-code" placeholder="847" maxlength="3" inputmode="numeric" pattern="[0-9]*" />
+    </div>
+
+    <div class="field">
+      <label>Group code</label>
+      <input type="text" id="login-group" value="pilot" />
+    </div>
+
+    <div class="field" id="color-field">
+      <label>Your color (group)</label>
+      <div class="color-picker" id="color-picker">
+        <div class="color-option selected" data-color="#378ADD" data-type="family" style="background:#378ADD">Family</div>
+        <div class="color-option" data-color="#D4537E" data-type="friends" style="background:#D4537E">Friends</div>
+        <div class="color-option" data-color="#EF9F27" data-type="work" style="background:#EF9F27">Work</div>
+        <div class="color-option" data-color="#1D9E75" data-type="team" style="background:#1D9E75">Team</div>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="login-btn" onclick="doLogin()">Enter</button>
+    <div class="error" id="login-error"></div>
+
+    <div class="connection-info" id="conn-info">—</div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div class="screen" id="main">
+    <div class="topbar">
+      <div class="me-chip">
+        <div class="me-av" id="me-av">
+          <span id="me-initials">—</span>
+          <div class="me-total" id="me-total">0</div>
+        </div>
+        <div class="me-name" id="me-name">—</div>
+      </div>
+      <div class="q-title" id="q-title">How are you doing?</div>
+      <div class="menu-btn" onclick="logout()"><span></span><span></span><span></span></div>
+    </div>
+
+    <div class="stage" id="stage">
+      <div class="track"></div>
+      <div class="track-top">100</div>
+      <div class="track-bot">0</div>
+
+      <!-- Myself view -->
+      <div id="myself-view">
+        <div class="ball" id="ball"></div>
+      </div>
+
+      <!-- Group view -->
+      <div id="group-view" style="display:none;position:relative;width:100%;height:100%;">
+        <div id="friends-container"></div>
+      </div>
+
+      <!-- History view -->
+      <div id="history-view" style="display:none;"></div>
+
+      <div class="toast" id="toast">—</div>
+    </div>
+
+    <div class="tabbar">
+      <button class="tab active" id="tab-myself" onclick="showMyself()">
+        <span class="tab-icon">◉</span>Myself
+      </button>
+      <button class="tab" id="tab-group" onclick="showGroup()">
+        <span class="tab-icon">◎◎◎</span>Group
+      </button>
+      <button class="tab" id="tab-history" onclick="showHistory()">
+        <span class="tab-icon">⌛</span>History
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ CONFIG ============
+// Set this to your Railway backend URL for pilot:
+const API_BASE = 'https://feelette-pilot-production.up.railway.app';
+
+// ============ STATE ============
+let me = null; // { id, name, code, group_code, color, group_type, current_value }
+let friends = [];
+let currentView = 'myself';
+
+let myValue = 50;
+let meTotal = 0;
+let dragActive = false;
+let stateSaveTimer = null;
+
+let pressActive = false;
+let pressStart = 0;
+let pressTarget = null;
+let pressTargetEl = null;
+let pressOriginalText = '';
+let pressTimer = null;
+
+let selectedColor = '#378ADD';
+let selectedGroupType = 'family';
+
+let pollTimer = null;
+let lastPollTime = null;
+
+// ============ STORAGE ============
+const LS = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch(e) { return null; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e) {} },
+  del: (k) => { try { localStorage.removeItem(k); } catch(e) {} },
+};
+
+// ============ API ============
+async function api(path, options = {}) {
+  const r = await fetch(API_BASE + path, {
+    method: options.method || 'GET',
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+    body: options.body ? JSON.stringify(options.body) : undefined,
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(err.error || 'Request failed');
+  }
+  return r.json();
+}
+
+// ============ LOGIN ============
+async function checkConnection() {
+  try {
+    const r = await fetch(API_BASE + '/health');
+    if (r.ok) {
+      document.getElementById('conn-info').textContent = '● connected';
+      document.getElementById('conn-info').style.color = 'var(--green)';
+      return true;
+    }
+  } catch (e) {}
+  document.getElementById('conn-info').textContent = '○ backend offline';
+  document.getElementById('conn-info').style.color = 'var(--coral)';
+  return false;
+}
+
+document.querySelectorAll('.color-option').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.color-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedColor = el.dataset.color;
+    selectedGroupType = el.dataset.type;
+  });
+});
+
+async function doLogin() {
+  const name = document.getElementById('login-name').value.trim();
+  const code = document.getElementById('login-code').value.trim();
+  const group_code = document.getElementById('login-group').value.trim();
+  const errEl = document.getElementById('login-error');
+
+  errEl.textContent = '';
+
+  if (!name) { errEl.textContent = 'Name is required'; return; }
+  if (!/^\d{3}$/.test(code)) { errEl.textContent = 'Code must be 3 digits'; return; }
+  if (!group_code) { errEl.textContent = 'Group code is required'; return; }
+
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true; btn.textContent = 'Connecting...';
+
+  try {
+    const data = await api('/api/users/login', {
+      method: 'POST',
+      body: { name, code, group_code, color: selectedColor, group_type: selectedGroupType },
+    });
+    me = data.user;
+    myValue = me.current_value || 50;
+    LS.set('feelette:me', me);
+    enterApp();
+  } catch (e) {
+    errEl.textContent = e.message;
+  } finally {
+    btn.disabled = false; btn.textContent = 'Enter';
+  }
+}
+
+function logout() {
+  if (!confirm('Log out?')) return;
+  LS.del('feelette:me');
+  if (pollTimer) clearInterval(pollTimer);
+  me = null;
+  document.getElementById('main').classList.remove('active');
+  document.getElementById('login').classList.add('active');
+}
+
+// ============ APP ============
+function enterApp() {
+  document.getElementById('login').classList.remove('active');
+  document.getElementById('main').classList.add('active');
+
+  const initials = me.name.split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase();
+  const avEl = document.getElementById('me-av');
+  avEl.style.background = `linear-gradient(135deg, ${me.color}, ${adjustColor(me.color, -30)})`;
+  document.getElementById('me-initials').textContent = initials;
+  document.getElementById('me-name').textContent = me.name + ' · ' + me.code;
+
+  loadFriends();
+  showMyself();
+  startPolling();
+}
+
+async function loadFriends() {
+  try {
+    const data = await api(`/api/groups/${me.group_code}/members?viewer_id=${me.id}`);
+    friends = data.members;
+    if (currentView === 'group') renderFriends();
+  } catch (e) { console.error(e); }
+}
+
+async function saveMyState() {
+  try {
+    await api(`/api/users/${me.id}/state`, {
+      method: 'POST',
+      body: { value: myValue },
+    });
+    const ball = document.getElementById('ball');
+    ball.classList.add('saving');
+    setTimeout(() => ball.classList.remove('saving'), 600);
+  } catch (e) { console.error('save state', e); }
+}
+
+function startPolling() {
+  if (pollTimer) clearInterval(pollTimer);
+  lastPollTime = new Date(Date.now() - 5000).toISOString();
+  pollTimer = setInterval(async () => {
+    if (!me) return;
+    try {
+      // check new gifts
+      const giftData = await api(`/api/gifts/received/${me.id}?since=${encodeURIComponent(lastPollTime)}`);
+      if (giftData.gifts && giftData.gifts.length > 0) {
+        giftData.gifts.forEach(g => {
+          const secs = Math.round(parseFloat(g.seconds_given));
+          const display = secs < 1 ? parseFloat(g.seconds_given).toFixed(1) + 's' : secs + 's';
+          showToast(`${g.from_name} gave you ${display}`, 'incoming');
+        });
+        lastPollTime = new Date().toISOString();
+      }
+      // refresh friends for current values + received counts
+      await loadFriends();
+    } catch (e) {}
+  }, 3000);
+}
+
+function showMyself() {
+  currentView = 'myself';
+  document.getElementById('myself-view').style.display = 'block';
+  document.getElementById('group-view').style.display = 'none';
+  document.getElementById('history-view').style.display = 'none';
+  document.getElementById('tab-myself').classList.add('active');
+  document.getElementById('tab-group').classList.remove('active');
+  document.getElementById('tab-history').classList.remove('active');
+  document.getElementById('q-title').textContent = 'How are you doing?';
+  updateBall();
+}
+
+function showGroup() {
+  currentView = 'group';
+  document.getElementById('myself-view').style.display = 'none';
+  document.getElementById('group-view').style.display = 'block';
+  document.getElementById('history-view').style.display = 'none';
+  document.getElementById('tab-myself').classList.remove('active');
+  document.getElementById('tab-group').classList.add('active');
+  document.getElementById('tab-history').classList.remove('active');
+  document.getElementById('q-title').textContent = "How's it going?";
+  loadFriends().then(() => renderFriends());
+}
+
+async function showHistory() {
+  currentView = 'history';
+  document.getElementById('myself-view').style.display = 'none';
+  document.getElementById('group-view').style.display = 'none';
+  const hv = document.getElementById('history-view');
+  hv.style.display = 'block';
+  document.getElementById('tab-myself').classList.remove('active');
+  document.getElementById('tab-group').classList.remove('active');
+  document.getElementById('tab-history').classList.add('active');
+  document.getElementById('q-title').textContent = 'This week';
+
+  hv.innerHTML = '<p class="empty">Loading...</p>';
+  try {
+    const data = await api(`/api/gifts/history/${me.id}`);
+    renderHistory(data);
+  } catch (e) {
+    hv.innerHTML = '<p class="empty">' + e.message + '</p>';
+  }
+}
+
+function renderHistory(data) {
+  const hv = document.getElementById('history-view');
+  const totalGiven = data.given_by_day.reduce((s, d) => s + d.total, 0);
+  const totalReceived = data.received_by_day.reduce((s, d) => s + d.total, 0);
+
+  let html = '';
+
+  html += `<div class="history-section">
+    <h3>Summary</h3>
+    <div class="day-row"><span>Given this week</span><span class="total">${totalGiven}s</span></div>
+    <div class="day-row"><span>Received this week</span><span class="total" style="color:var(--green)">${totalReceived}s</span></div>
+  </div>`;
+
+  html += '<div class="history-section"><h3>Received from</h3>';
+  if (data.received_by_person.length === 0) {
+    html += '<p class="empty">No time received yet</p>';
+  } else {
+    data.received_by_person.forEach(p => {
+      html += `<div class="person-row">
+        <div class="person-dot" style="background:${p.color}"></div>
+        <div class="person-name">${escape(p.name)}</div>
+        <div class="person-time">${p.total}s</div>
+      </div>`;
+    });
+  }
+  html += '</div>';
+
+  html += '<div class="history-section"><h3>Given by day</h3>';
+  if (data.given_by_day.length === 0) {
+    html += '<p class="empty">No time given yet</p>';
+  } else {
+    data.given_by_day.forEach(d => {
+      const day = new Date(d.day);
+      const label = day.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      html += `<div class="day-row"><span>${label}</span><span class="total">${d.total}s</span></div>`;
+    });
+  }
+  html += '</div>';
+
+  hv.innerHTML = html;
+}
+
+function escape(s) {
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+// ============ BALL ============
+const stage = document.getElementById('stage');
+const ball = document.getElementById('ball');
+
+function updateBall() {
+  const rect = stage.getBoundingClientRect();
+  const trackTop = 30, trackBot = rect.height - 30;
+  const usable = trackBot - trackTop;
+  const y = trackBot - (myValue / 100) * usable;
+  ball.style.top = y + 'px';
+}
+
+function setBallFromY(clientY) {
+  const rect = stage.getBoundingClientRect();
+  const trackTop = 30, trackBot = rect.height - 30;
+  const usable = trackBot - trackTop;
+  const relY = clientY - rect.top;
+  const clamped = Math.max(trackTop, Math.min(trackBot, relY));
+  myValue = ((trackBot - clamped) / usable) * 100;
+  updateBall();
+}
+
+ball.addEventListener('mousedown', dragStart);
+ball.addEventListener('touchstart', dragStart, { passive: false });
+document.addEventListener('mousemove', dragMove);
+document.addEventListener('touchmove', dragMove, { passive: false });
+document.addEventListener('mouseup', dragEnd);
+document.addEventListener('touchend', dragEnd);
+document.addEventListener('touchcancel', dragEnd);
+
+function dragStart(e) {
+  if (currentView !== 'myself') return;
+  e.preventDefault();
+  dragActive = true;
+  ball.classList.add('grab');
+}
+function dragMove(e) {
+  if (!dragActive) return;
+  e.preventDefault();
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+  setBallFromY(y);
+}
+function dragEnd() {
+  if (!dragActive) return;
+  dragActive = false;
+  ball.classList.remove('grab');
+  saveMyState();
+  setTimeout(() => {
+    if (currentView === 'myself') showGroup();
+  }, 500);
+}
+
+// ============ FRIENDS ============
+function renderFriends() {
+  const container = document.getElementById('friends-container');
+  const rect = stage.getBoundingClientRect();
+  const trackTop = 30, trackBot = rect.height - 30;
+  const usable = trackBot - trackTop;
+  const centerX = rect.width / 2;
+
+  container.innerHTML = '';
+
+  // Me ball (not interactive)
+  const myY = trackBot - (myValue / 100) * usable;
+  const myBall = document.createElement('div');
+  myBall.style.cssText = `position:absolute;left:${centerX - 19}px;top:${myY - 19}px;width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,${me.color},${adjustColor(me.color, -30)});border:2px solid ${me.color};z-index:4;`;
+  container.appendChild(myBall);
+
+  friends.forEach((f, i) => {
+    const y = trackBot - (f.current_value / 100) * usable;
+    const isLeft = i % 2 === 0;
+    const sideIndex = Math.floor(i / 2);
+    const horizOffset = 90 + sideIndex * 30;
+    const ballX = isLeft ? centerX - horizOffset - 27 : centerX + horizOffset;
+
+    // line
+    const line = document.createElement('div');
+    const lineLeft = isLeft ? ballX + 54 : centerX;
+    const lineWidth = isLeft ? (centerX - lineLeft) : (ballX - centerX);
+    line.className = 'f-line';
+    line.style.cssText = `left:${lineLeft}px;top:${y - 1}px;width:${lineWidth}px;background:${f.color};`;
+    container.appendChild(line);
+
+    // dot on track
+    const dot = document.createElement('div');
+    dot.className = 'f-dot';
+    dot.style.cssText = `left:${centerX - 4}px;top:${y - 4}px;background:${f.color};`;
+    container.appendChild(dot);
+
+    // name above line
+    const nameLabel = document.createElement('div');
+    nameLabel.className = 'name-on-line';
+    nameLabel.style.color = f.color;
+    const midX = lineLeft + lineWidth / 2;
+    nameLabel.textContent = f.name;
+    nameLabel.style.left = `${midX}px`;
+    nameLabel.style.top = `${y - 16}px`;
+    nameLabel.style.transform = 'translateX(-50%)';
+    container.appendChild(nameLabel);
+
+    // friend ball
+    const fb = document.createElement('div');
+    fb.className = 'friend-ball';
+    fb.style.cssText = `left:${ballX}px;top:${y - 27}px;border-color:${f.color};background:linear-gradient(135deg, ${f.color}, ${adjustColor(f.color, -30)});--pulse-color:${hexToRgba(f.color, 0.5)};`;
+    fb.id = 'fball-' + f.id;
+    fb.textContent = f.received_this_week;
+
+    fb.addEventListener('mousedown', (e) => startPress(e, f, fb));
+    fb.addEventListener('touchstart', (e) => startPress(e, f, fb), { passive: false });
+
+    container.appendChild(fb);
+  });
+}
+
+function adjustColor(hex, amt) {
+  const num = parseInt(hex.replace('#',''), 16);
+  let r = (num >> 16) + amt;
+  let g = ((num >> 8) & 0xff) + amt;
+  let b = (num & 0xff) + amt;
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+  return '#' + ((r << 16) | (g << 8) | b).toString(16).padStart(6, '0');
+}
+function hexToRgba(hex, a) {
+  const n = parseInt(hex.replace('#',''), 16);
+  return `rgba(${(n>>16)},${((n>>8)&0xff)},${(n&0xff)},${a})`;
+}
+
+// ============ PRESS ============
+function formatCounter(s) {
+  if (s < 1) return s.toFixed(1);
+  return String(Math.floor(s));
+}
+
+function startPress(e, friend, element) {
+  e.preventDefault();
+  if (pressActive) return;
+  pressActive = true;
+  pressTarget = friend;
+  pressTargetEl = element;
+  pressOriginalText = element.textContent;
+  pressStart = performance.now();
+  element.classList.add('giving');
+  element.textContent = '0.0';
+
+  pressTimer = setInterval(() => {
+    const e = (performance.now() - pressStart) / 1000;
+    element.textContent = formatCounter(e);
+  }, 50);
+
+  document.addEventListener('mouseup', endPress);
+  document.addEventListener('touchend', endPress);
+  document.addEventListener('touchcancel', endPress);
+}
+
+async function endPress() {
+  if (!pressActive) return;
+  const elapsedS = (performance.now() - pressStart) / 1000;
+  pressActive = false;
+  clearInterval(pressTimer);
+  if (pressTargetEl) pressTargetEl.classList.remove('giving');
+
+  if (elapsedS >= 0.3) {
+    const seconds = parseFloat(elapsedS.toFixed(2));
+    try {
+      await api('/api/gifts', {
+        method: 'POST',
+        body: {
+          from_user_id: me.id,
+          to_user_id: pressTarget.id,
+          seconds_given: seconds,
+        },
+      });
+      const addSec = Math.round(elapsedS);
+      pressTarget.received_this_week = (pressTarget.received_this_week || 0) + addSec;
+      meTotal += addSec;
+      document.getElementById('me-total').textContent = meTotal;
+      if (pressTargetEl) pressTargetEl.textContent = pressTarget.received_this_week;
+      const display = elapsedS < 1 ? elapsedS.toFixed(1) + 's' : Math.round(elapsedS) + 's';
+      showToast(`You gave ${pressTarget.name.split(' ')[0]} ${display}`);
+    } catch (err) {
+      if (pressTargetEl) pressTargetEl.textContent = pressOriginalText;
+      showToast('Failed: ' + err.message);
+    }
+  } else {
+    if (pressTargetEl) pressTargetEl.textContent = pressOriginalText;
+  }
+
+  pressTarget = null;
+  pressTargetEl = null;
+  document.removeEventListener('mouseup', endPress);
+  document.removeEventListener('touchend', endPress);
+  document.removeEventListener('touchcancel', endPress);
+}
+
+// ============ TOAST ============
+function showToast(msg, kind) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast visible' + (kind ? ' ' + kind : '');
+  setTimeout(() => t.classList.remove('visible'), 2500);
+}
+
+// ============ INIT ============
+window.addEventListener('resize', () => {
+  if (currentView === 'myself') updateBall();
+  else if (currentView === 'group') renderFriends();
+});
+
+async function init() {
+  await checkConnection();
+  const saved = LS.get('feelette:me');
+  if (saved && saved.id) {
+    me = saved;
+    myValue = me.current_value || 50;
+    enterApp();
+  }
+}
+init();
+</script>
+</body>
+</html>
