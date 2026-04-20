@@ -1,5 +1,5 @@
--- Feelette Pilot Schema
--- Simple design: users identified by 3-digit code + group code
+-- Feelette Pilot Schema v2
+-- Adds: email column for optional contact info
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -9,12 +9,17 @@ CREATE TABLE IF NOT EXISTS users (
   color VARCHAR(20) NOT NULL DEFAULT '#378ADD',
   group_type VARCHAR(20) NOT NULL DEFAULT 'family',
   current_value INTEGER NOT NULL DEFAULT 50,
+  email VARCHAR(200),
   last_state_update TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(code, group_code)
 );
 
+-- Add email column to existing tables (safe if already exists)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(200);
+
 CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_code);
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email) WHERE email IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS time_gifts (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
