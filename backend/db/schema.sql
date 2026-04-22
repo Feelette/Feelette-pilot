@@ -1,5 +1,5 @@
--- Feelette Pilot Schema v2
--- Adds: email column for optional contact info
+-- Feelette Pilot Schema v3
+-- Adds: questions, question_answers, favorites tables
 
 CREATE TABLE IF NOT EXISTS users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE(code, group_code)
 );
 
--- Add email column to existing tables (safe if already exists)
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(200);
 
 CREATE INDEX IF NOT EXISTS idx_users_group ON users(group_code);
@@ -33,3 +32,37 @@ CREATE TABLE IF NOT EXISTS time_gifts (
 CREATE INDEX IF NOT EXISTS idx_gifts_from ON time_gifts(from_user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_gifts_to ON time_gifts(to_user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_gifts_group ON time_gifts(group_code, created_at DESC);
+
+-- NEW: Questions
+CREATE TABLE IF NOT EXISTS questions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  group_code VARCHAR(50) NOT NULL,
+  text VARCHAR(200) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_questions_group ON questions(group_code, created_at DESC);
+
+-- NEW: Question answers (one per user per question, updated in place)
+CREATE TABLE IF NOT EXISTS question_answers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  question_id UUID NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  value INTEGER NOT NULL CHECK (value >= 0 AND value <= 100),
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(question_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_answers_question ON question_answers(question_id);
+
+-- NEW: Favorites (who this user has starred)
+CREATE TABLE IF NOT EXISTS favorites (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  favorite_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE(user_id, favorite_user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id, created_at DESC);
