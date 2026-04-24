@@ -7,9 +7,10 @@
     "start": "node server.js",
     "db:init": "node db/init.js"
   },
-  "dependencies": {
+    "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "node-cron": "^3.0.3",
     "pg": "^8.11.3"
   },
   "engines": {
