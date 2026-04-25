@@ -59,7 +59,7 @@ async function runNightlyGiftReset() {
   const started = new Date();
   try {
     const result = await pool.query(`
-      DELETE FROM gifts
+      DELETE FROM time_gifts
       WHERE created_at < NOW() - INTERVAL '20 hours'
     `);
     const rowCount = result.rowCount || 0;
