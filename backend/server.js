@@ -21,7 +21,7 @@ app.use(express.json({ limit: '1mb' }));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ ok: true, service: 'feelette-pilot', version: '4', ts: new Date().toISOString() });
+  res.json({ ok: true, service: 'feelette-pilot', version: '4.2', ts: new Date().toISOString() });
 });
 
 // API routes
@@ -30,17 +30,6 @@ app.use('/api/groups', groupsRouter);
 app.use('/api/gifts', giftsRouter);
 app.use('/api/questions', questionsRouter);
 app.use('/api/favorites', favoritesRouter);
-
-// 404
-app.use((req, res) => {
-  res.status(404).json({ error: 'Not found' });
-});
-
-// Error handler
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.status(500).json({ error: err.message || 'Server error' });
-});
 
 // ============================================================
 // DAILY GIFT RESET — runs every night at 04:00 Finnish time
@@ -70,7 +59,6 @@ async function runNightlyGiftReset() {
 }
 
 // Schedule: 04:00 Finnish time (Europe/Helsinki) every day
-// node-cron 5-field syntax: minute hour day month dayOfWeek
 cron.schedule('0 4 * * *', runNightlyGiftReset, {
   timezone: 'Europe/Helsinki',
 });
@@ -79,6 +67,7 @@ console.log('⏰ Nightly gift reset scheduled for 04:00 Europe/Helsinki');
 
 // Manual trigger endpoint — useful for testing or one-off cleanup
 // Usage: curl -X POST https://feelette-pilot-production.up.railway.app/admin/reset-gifts
+// IMPORTANT: This must be defined BEFORE the 404 handler below.
 app.post('/admin/reset-gifts', async (req, res) => {
   try {
     await runNightlyGiftReset();
@@ -88,6 +77,17 @@ app.post('/admin/reset-gifts', async (req, res) => {
   }
 });
 
+// 404 handler — must be the LAST app.use() before error handler
+app.use((req, res) => {
+  res.status(404).json({ error: 'Not found' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: err.message || 'Server error' });
+});
+
 app.listen(PORT, () => {
-  console.log(`🚀 Feelette Pilot v4 running on port ${PORT}`);
+  console.log(`🚀 Feelette Pilot v4.2 running on port ${PORT}`);
 });
