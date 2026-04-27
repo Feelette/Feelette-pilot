@@ -7,6 +7,7 @@ const groupsRouter = require('./routes/groups');
 const giftsRouter = require('./routes/gifts');
 const questionsRouter = require('./routes/questions');
 const favoritesRouter = require('./routes/favorites');
+const personalRouter = require('./routes/personal');
 
 // Database pool for scheduled tasks (nightly reset needs direct SQL access)
 // Handle both export styles: module.exports = pool  OR  module.exports = { pool }
@@ -21,7 +22,7 @@ app.use(express.json({ limit: '1mb' }));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ ok: true, service: 'feelette-pilot', version: '4.2', ts: new Date().toISOString() });
+  res.json({ ok: true, service: 'feelette-pilot', version: '5', ts: new Date().toISOString() });
 });
 
 // API routes
@@ -30,6 +31,7 @@ app.use('/api/groups', groupsRouter);
 app.use('/api/gifts', giftsRouter);
 app.use('/api/questions', questionsRouter);
 app.use('/api/favorites', favoritesRouter);
+app.use('/api/personal', personalRouter);
 
 // ============================================================
 // DAILY GIFT RESET — runs every night at 04:00 Finnish time
@@ -89,5 +91,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Feelette Pilot v4.2 running on port ${PORT}`);
+  console.log(`🚀 Feelette Pilot v5 running on port ${PORT}`);
 });
